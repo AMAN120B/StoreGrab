@@ -8,6 +8,7 @@ import com.grab.storeservice.exception.QuantityLessInStore;
 import com.grab.storeservice.exception.StoreNotFoundException;
 import com.grab.storeservice.model.Product;
 import com.grab.storeservice.model.Store;
+import com.grab.storeservice.exception.ProductNotFoundException;
 
 import java.util.List;
 import java.util.UUID;
@@ -30,9 +31,9 @@ public interface IService {
 
     public Store updateProduct(int gstId, String pname, Product p ) throws ProductNotFound, StoreNotFoundException;
     public List<Product> showProducts(int gstId) throws StoreNotFoundException;
-    //public void addProductToCart(Product product);
+    //public void addProductToCart(Product product)
 
-    public Store showBestDiscount(String pname);
+    public Store showBestDiscount(String pname) throws ProductNotFoundException;
     public void addProductToCart(int gstId,String pname,double qty) throws StoreNotFoundException, ProductNotFound, QuantityLessInStore;
 
     public void delProductToCart(int gstId, String pname, double qty) throws StoreNotFoundException, ProductNotFound ;

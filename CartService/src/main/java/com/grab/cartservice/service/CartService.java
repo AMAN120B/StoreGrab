@@ -120,7 +120,7 @@ public class CartService implements IService {
 
     @Override
     public void receiveProductFromStore() {
-        String storeServiceUrl = "http://STORE-SERVICE/api/store/products"; // Change this to the actual URL
+        String storeServiceUrl = "http://localhost:8092/api/store/products"; 
         Body[] products = restTemplate.getForObject(storeServiceUrl, Body[].class);
         if (products != null) {
             for (Body body : products) {

@@ -13,6 +13,7 @@ import org.springframework.web.client.RestTemplate;
 import com.grab.storeservice.exception.AllreadyExistingStoreException;
 import com.grab.storeservice.exception.ProductAlreadyExists;
 import com.grab.storeservice.exception.ProductNotFound;
+import com.grab.storeservice.exception.ProductNotFoundException;
 import com.grab.storeservice.exception.QuantityLessInStore;
 import com.grab.storeservice.exception.StoreNotFoundException;
 import com.grab.storeservice.model.Body;
@@ -25,7 +26,7 @@ import java.util.Optional;
 
 @Service
 public class StoreService implements IService {
-
+	
     @Autowired
     private StoreRepo srepo;
 
@@ -48,9 +49,11 @@ public class StoreService implements IService {
     }
 
     @Override
+    
     public boolean deleteStore(int gstId) throws StoreNotFoundException {
         Optional<Store> opt = srepo.findByGstId(gstId);
         if (opt.isPresent()) {
+        	
             srepo.deleteByGstId(gstId);
             return true;
         } else {
@@ -105,7 +108,7 @@ public class StoreService implements IService {
             throw new StoreNotFoundException("The store does not exist");
         }
     }
-
+    
     @Override
     public boolean deleteProduct(int gstId, String pname) throws StoreNotFoundException, ProductNotFound {
         Store existingStore = srepo.findByGstId(gstId).orElseThrow(() -> new StoreNotFoundException("No store found"));
@@ -124,7 +127,10 @@ public class StoreService implements IService {
     public Store updateProduct(int gstId, String pname, Product p) throws ProductNotFound, StoreNotFoundException {
         Store existingStore = srepo.findByGstId(gstId).orElseThrow(() -> new StoreNotFoundException("Store not found"));
         List<Product> products = existingStore.getProducts();
-        boolean exist = products.removeIf(prod -> prod.getPname().equalsIgnoreCase(pname));
+        
+        // Check if the product exists and remove it
+        boolean exist = products.removeIf(prod -> pname.equalsIgnoreCase(prod.getPname()));
+        
         if (exist) {
             products.add(p);
             existingStore.setProducts(products);
@@ -142,14 +148,19 @@ public class StoreService implements IService {
     }
 
     @Override
-    public Store showBestDiscount(String pname) {
+    public Store showBestDiscount(String pname) throws ProductNotFoundException {
         double bestDiscount = 0.0;
-        Store returnStore = new Store();
+        Store returnStore = null;  // Initialize as null to handle cases where no store is found
+        boolean productFound = false;  // Flag to check if the product is found
+
         List<Store> existingStores = srepo.findAll();
+
         for (Store s : existingStores) {
             List<Product> products = s.getProducts();
             for (Product p : products) {
-                if (p.getPname().equals(pname)) {
+                // Check if p.getPname() is not null before comparing
+                if (p.getPname() != null && p.getPname().equalsIgnoreCase(pname)) {
+                    productFound = true;
                     if (p.getDiscount() > bestDiscount) {
                         bestDiscount = p.getDiscount();
                         returnStore = s;
@@ -157,45 +168,70 @@ public class StoreService implements IService {
                 }
             }
         }
+
+        if (!productFound) {
+            throw new ProductNotFoundException("Product with name '" + pname + "' not found");
+        }
+
         return returnStore;
     }
 
+
+
+
+//    @Override
+//    public void addProductToCart(int gstId, String pname, double qty) throws StoreNotFoundException, ProductNotFound, QuantityLessInStore {
+//        Store existingStore = srepo.findByGstId(gstId).orElseThrow(() -> new StoreNotFoundException("Store not found"));
+//        List<Product> products = existingStore.getProducts();
+//        Body body = new Body();
+//        body.setGstId(gstId);
+//        body.setStorename(existingStore.getStorename());
+//        Product cartProduct = new Product();
+//        boolean st = false;
+//
+//        for (Product currentProduct : products) {
+//            if (currentProduct.getPname().equals(pname) && currentProduct.getUnit() >= qty) {
+//                cartProduct.setPname(currentProduct.getPname());
+//                cartProduct.setUnit(qty);
+//                cartProduct.setPrice(currentProduct.getPrice());
+//                cartProduct.setDiscount(currentProduct.getDiscount());
+//                currentProduct.setUnit(currentProduct.getUnit() - qty);
+//                body.setProduct(cartProduct);
+//                body.setTotalPrice(qty * (cartProduct.getPrice()) * (100 - (cartProduct.getDiscount())) * 0.01);
+//                updateProduct(gstId, pname, currentProduct);
+//
+//                // Convert Body object to JSON and send via RestTemplate
+//                HttpHeaders headers = new HttpHeaders();
+//                headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
+//                HttpEntity<Body> request = new HttpEntity<>(body, headers);
+//                restTemplate.exchange("http://localhost:8091/api/cart/add", HttpMethod.POST, request, String.class);
+//
+//                st = true;
+//                break;
+//            }
+//        }
+//        if (!st) {
+//            throw new QuantityLessInStore("Quantity shortage");
+//        }
+//    }
+//
+    
     @Override
-    public void addProductToCart(int gstId, String pname, double qty) throws StoreNotFoundException, ProductNotFound, QuantityLessInStore {
-        Store existingStore = srepo.findByGstId(gstId).orElseThrow(() -> new StoreNotFoundException("Store not found"));
-        List<Product> products = existingStore.getProducts();
-        Body body = new Body();
-        body.setGstId(gstId);
-        body.setStorename(existingStore.getStorename());
-        Product cartProduct = new Product();
-        boolean st = false;
+	public void addProductToCart(int gstId, String pname, double qty)
+			throws StoreNotFoundException, ProductNotFound, QuantityLessInStore {
 
-        for (Product currentProduct : products) {
-            if (currentProduct.getPname().equals(pname) && currentProduct.getUnit() >= qty) {
-                cartProduct.setPname(currentProduct.getPname());
-                cartProduct.setUnit(qty);
-                cartProduct.setPrice(currentProduct.getPrice());
-                cartProduct.setDiscount(currentProduct.getDiscount());
-                currentProduct.setUnit(currentProduct.getUnit() - qty);
-                body.setProduct(cartProduct);
-                body.setTotalPrice(qty * (cartProduct.getPrice()) * (100 - (cartProduct.getDiscount())) * 0.01);
-                updateProduct(gstId, pname, currentProduct);
+    	
+    	
+    	
+		
+	}
 
-                // Convert Body object to JSON and send via RestTemplate
-                HttpHeaders headers = new HttpHeaders();
-                headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
-                HttpEntity<Body> request = new HttpEntity<>(body, headers);
-                restTemplate.exchange("http://external-service-url/api/cart/add", HttpMethod.POST, request, String.class);
-
-                st = true;
-                break;
-            }
-        }
-        if (!st) {
-            throw new QuantityLessInStore("Quantity shortage");
-        }
-    }
-
+    
+    
+    
+    
+    
+    
     @Override
     public void delProductToCart(int gstId, String pname, double qty) throws StoreNotFoundException, ProductNotFound {
         Store existingStore = srepo.findByGstId(gstId).orElseThrow(() -> new StoreNotFoundException("Store not found"));
@@ -222,7 +258,7 @@ public class StoreService implements IService {
                 HttpHeaders headers = new HttpHeaders();
                 headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
                 HttpEntity<Body> request = new HttpEntity<>(body, headers);
-                restTemplate.exchange("http://external-service-url/api/cart/delete", HttpMethod.POST, request, String.class);
+                restTemplate.exchange("http://localhost:8091/api/cart/delete", HttpMethod.POST, request, String.class);
 
                 st = true;
                 break;
@@ -233,5 +269,6 @@ public class StoreService implements IService {
         }
     }
 
+	
 	
 }

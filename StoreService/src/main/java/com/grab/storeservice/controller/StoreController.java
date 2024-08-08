@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import com.grab.storeservice.exception.AllreadyExistingStoreException;
 import com.grab.storeservice.exception.ProductAlreadyExists;
 import com.grab.storeservice.exception.ProductNotFound;
+import com.grab.storeservice.exception.ProductNotFoundException;
 import com.grab.storeservice.exception.QuantityLessInStore;
 import com.grab.storeservice.exception.StoreNotFoundException;
 import com.grab.storeservice.model.Product;
@@ -18,6 +19,7 @@ import com.grab.storeservice.service.StoreService;
 import java.util.List;
 
 @RestController
+@CrossOrigin(origins = "http://localhost:4200")
 @RequestMapping("api/store")
 public class StoreController {
     @Autowired
@@ -173,13 +175,20 @@ public class StoreController {
 
 
 
-
-    //show best discout of a product present in many stores
-    @GetMapping("showbestdiscount/{pname}") //product not exist exception needed
-    public ResponseEntity<?> showBestDiscount(@PathVariable String pname){
-        Store stores=storeser.showBestDiscount(pname);
-        return new ResponseEntity<>(stores,HttpStatus.OK);
+//
+// show best discout of a product present in many stores
+    @GetMapping("showbestdiscount/{pname}")
+    public ResponseEntity<?> showBestDiscount(@PathVariable String pname) {
+        try {
+            Store store = storeser.showBestDiscount(pname);
+            return new ResponseEntity<>(store, HttpStatus.OK);
+        } catch (ProductNotFoundException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
+
 
 
 
