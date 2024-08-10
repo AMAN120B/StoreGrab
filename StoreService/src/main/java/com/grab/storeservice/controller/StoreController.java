@@ -195,25 +195,60 @@ public class StoreController {
 
 
     //controller to send a body to cart
-    @PostMapping("addproducttocart/{gstId}/{pname}/{qty}")
-    public ResponseEntity<?> addProductToCart(@PathVariable int gstId,@PathVariable String pname,@PathVariable double qty) throws StoreNotFoundException, ProductNotFound, QuantityLessInStore {
-       try{
-           storeser.addProductToCart(gstId,pname,qty);
-           return new ResponseEntity<>("Successfully Added..",HttpStatus.OK);
-       }
-       catch(QuantityLessInStore qe){
-           throw new QuantityLessInStore("Less quantity");
-       }
-       catch(Exception e){
-           return new ResponseEntity<>(e.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR);
-       }
+    
+//    @PostMapping("addproducttocart/{gstId}/{productId}/{pname}/{qty}")
+//    public ResponseEntity<?> addProductToCart(
+//        @PathVariable int gstId, 
+//        @PathVariable Long productId, 
+//        @PathVariable String pname, 
+//        @PathVariable double qty) {
+//        try {
+//            storeser.addProductToCart(gstId, pname, qty, productId);
+//            return new ResponseEntity<>("Successfully Added..", HttpStatus.OK);
+//        } catch (Exception e) {
+//            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+//        }
+//    }
+//
+//
+//    
+//    
+//    @DeleteMapping("deleteproducttocart/{gstId}/{pname}/{qty}")
+//    public ResponseEntity<?> deleteproductincart(@PathVariable int gstId,@PathVariable String pname,@PathVariable double qty) throws StoreNotFoundException, ProductNotFound {
+//
+//        storeser.delProductToCart(gstId, pname,qty);
+//        return new ResponseEntity<>("Successfully deleted..", HttpStatus.OK);
+//
+//
+//    }
+ // In StoreController.java
+
+    @GetMapping("getProductByGstAndProductId/{gstId}/{productId}")
+    public ResponseEntity<?> getProductByGstAndProductId(@PathVariable int gstId, @PathVariable Long productId) {
+        try {
+            Product product = storeser.getProductByGstAndProductId(gstId, productId);
+            return new ResponseEntity<>(product, HttpStatus.OK);
+        } catch (ProductNotFoundException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
-    @DeleteMapping("deleteproducttocart/{gstId}/{pname}/{qty}")
-    public ResponseEntity<?> deleteproductincart(@PathVariable int gstId,@PathVariable String pname,@PathVariable double qty) throws StoreNotFoundException, ProductNotFound {
+    
+ // In StoreController.java
 
-        storeser.delProductToCart(gstId, pname,qty);
-        return new ResponseEntity<>("Successfully deleted..", HttpStatus.OK);
-
-
+    @PutMapping("updateProductQuantity/{gstId}/{productId}/{quantity}")
+    public ResponseEntity<?> updateProductQuantity(
+        @PathVariable int gstId, 
+        @PathVariable Long productId, 
+        @PathVariable double quantity) {
+        try {
+            storeser.updateProductQuantity(gstId, productId, quantity);
+            return new ResponseEntity<>("Quantity updated successfully", HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
+
+
 }

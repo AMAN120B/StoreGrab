@@ -34,8 +34,12 @@ public interface IService {
     //public void addProductToCart(Product product)
 
     public Store showBestDiscount(String pname) throws ProductNotFoundException;
-    public void addProductToCart(int gstId,String pname,double qty) throws StoreNotFoundException, ProductNotFound, QuantityLessInStore;
+//    public void addProductToCart(int cartId, String productName, double quantity,Long productId)throws ProductNotFound;
+//    		throws StoreNotFoundException, ProductNotFound, QuantityLessInStore;
 
-    public void delProductToCart(int gstId, String pname, double qty) throws StoreNotFoundException, ProductNotFound ;
+//    public void delProductToCart(int gstId, String pname, double qty) throws StoreNotFoundException, ProductNotFound ;
+    
+    Product getProductByGstAndProductId(int gstId, Long productId) throws StoreNotFoundException, ProductNotFoundException;
+    public void updateProductQuantity(int gstId, Long productId, double quantity) throws StoreNotFoundException, ProductNotFoundException,QuantityLessInStore;
 
     }
