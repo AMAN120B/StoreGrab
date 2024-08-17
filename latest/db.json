@@ -1,0 +1,11 @@
+{
+  "product": [
+    {
+      "id": 4,
+      "pname": "Laptop",
+      "price": 799.99,
+      "unit": 1,
+      "discount": 15
+    }
+  ]
+}
